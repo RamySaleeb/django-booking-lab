@@ -73,7 +73,7 @@ for (const mode of ['success', 'timeout', 'failure']) {
     const time = clock();
     let handler, calls = 0;
     const nodes = {
-      'race-button': {disabled: false, addEventListener(_, callback) { handler = callback; }},
+      'race-button': {disabled: false, setAttribute(name, value) { this[name] = value; }, addEventListener(_, callback) { handler = callback; }},
       'race-form': {action: '/reserve/'},
       'race-result': {textContent: ''},
       'race-refresh': {hidden: true, href: '/?room=focus&day=2026-10-13#booking'},
@@ -100,7 +100,8 @@ for (const mode of ['success', 'timeout', 'failure']) {
     await first;
     await handler();
     assert.equal(calls, 2);
-    assert.equal(nodes['race-button'].disabled, true);
+    assert.equal(nodes['race-button'].disabled, false);
+    assert.equal(nodes['race-button']['aria-disabled'], 'true');
     assert.equal(nodes['race-refresh'].hidden, false);
     assert.equal(nodes['race-refresh'].textContent, 'Check your reservations →');
     assert.equal(nodes['race-refresh'].href, '/?room=focus&day=2026-10-13#booking');
