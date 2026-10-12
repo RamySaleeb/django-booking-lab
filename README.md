@@ -20,6 +20,8 @@ Free hosting may take a moment to wake up. Demo reservations are temporary.
 
 6. If the experiment cannot finish within **8 seconds**, it stops waiting, aborts outstanding browser requests, and offers **Check your reservations**. A request may already have created a booking even if its response was lost. Nothing is automatically retried; check the actual reservations before starting another experiment. Refreshing the page enables a new experiment using current availability.
 
+Keyboard walkthrough: press **Tab** to reveal **Skip to booking**, then **Enter**. Use Tab/Shift+Tab and Enter to choose a room/day, reserve a time, and cancel it. Focus follows the selected link and lands on the booking/cancellation feedback after submission. During a race, focus stays on the button; after completion, Tab reaches **Check your reservations**. Text and date cards reflow on narrow screens and with enlarged text.
+
 Each browser gets a signed, anonymous sandbox identifier. Visitors do not compete for the same global rooms, while requests within one sandbox compete for the same database slot. Booking and cancellation work without JavaScript; only the race experiment requires it.
 
 ## What this demonstrates
@@ -63,6 +65,16 @@ node --test tests/race.test.cjs
 
 The 11 JavaScript tests use controlled time and fake requests to cover success, conflicts, server errors, rejection, stalled requests, late completions, cleanup, and repeat-activation guards. The 13 Django tests cover database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. Tests use a separate file-backed SQLite database so threaded tests exercise separate connections.
 
+Browser regression tests (Node.js 22+ and the active Python environment):
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:browser
+```
+
+Seven Chromium tests cover keyboard-only booking with/without JavaScript, 320px and desktop layouts at 100%/200% text size, and race status/focus behavior. They run against local fictional data in a separate CI job. See [browser testing and manual screen-reader limitations](CONTRIBUTING.md#browser-accessibility-checks). These checks are not a WCAG certification.
+
 ## Deploy on Render
 
 Create a **free Python web service** from this repository:
@@ -79,7 +91,7 @@ For production, use durable PostgreSQL storage, authenticated ownership, retenti
 
 ## Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include PostgreSQL CI coverage, timezone display with daylight-saving tests, and automated browser accessibility checks. Please keep the demo easy to run and never commit credentials or real customer data.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include PostgreSQL CI coverage, timezone display with daylight-saving tests, and manual assistive-technology checks. Please keep the demo easy to run and never commit credentials or real customer data.
 
 ## Contributor roadmap
 
@@ -88,12 +100,12 @@ Start with [fully booked-day and cancellation tests (#1)](https://github.com/Ram
 | Task | Contribution level |
 | --- | --- |
 | [Fully booked-day tests](https://github.com/RamySaleeb/django-booking-lab/issues/1) | Small · Django tests |
-| [Keyboard and large-text browser coverage](https://github.com/RamySaleeb/django-booking-lab/issues/2) | Intermediate · accessibility |
+| [Keyboard and large-text browser coverage](https://github.com/RamySaleeb/django-booking-lab/issues/2) | Completed · keyboard, reflow, and browser tests |
 | [Race-demo deadline and partial-outcome recovery](https://github.com/RamySaleeb/django-booking-lab/issues/3) | Completed · 8-second deadline and recovery tests |
 | [PostgreSQL concurrency tests in CI](https://github.com/RamySaleeb/django-booking-lab/issues/4) | Advanced · database testing |
 | [Timezone and daylight-saving proposal](https://github.com/RamySaleeb/django-booking-lab/issues/5) | Design discussion · no implementation yet |
 
-The remaining open issues welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). Open items are planned improvements; the completed race-recovery item is marked above.
+The remaining open issues welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). Open items are planned improvements; completed items are marked above.
 
 ## License
 
