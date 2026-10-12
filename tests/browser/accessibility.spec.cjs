@@ -46,14 +46,14 @@ for (const javaScriptEnabled of [true, false]) {
       await page.keyboard.press('Enter');
       await expect(day).toHaveAttribute('aria-current', 'date');
       await expect(day).toBeFocused();
-      const reserve = page.getByRole('button', {name: '09:00 – 10:00 Reserve ↗', exact: true});
+      const reserve = page.getByRole('button', {name: '09:00 – 10:00 UTC Reserve ↗', exact: true});
       await tabTo(page, reserve);
       await page.keyboard.press('Enter');
       const feedback = page.locator('#booking-feedback');
       await expect(feedback).toContainText('Reserved.');
       await expect(feedback).toBeFocused();
       await expect(feedback).toHaveAttribute('role', 'status');
-      await expect(page.getByRole('button', {name: '09:00 – 10:00 Reserved', exact: true})).toBeDisabled();
+      await expect(page.getByRole('button', {name: '09:00 – 10:00 UTC Reserved', exact: true})).toBeDisabled();
       const cancel = page.getByRole('button', {name: /^Cancel Meeting room on/});
       await tabTo(page, cancel);
       await page.keyboard.press('Enter');
@@ -76,7 +76,7 @@ for (const width of [320, 1280]) {
       await page.goto('/');
       await expectReflow(page, width);
       expect(await page.locator('html').evaluate(el => getComputedStyle(el).fontSize)).toBe(`${16 * textScale / 100}px`);
-      const slot = page.getByRole('button', {name: '09:00 – 10:00 Reserve ↗', exact: true});
+      const slot = page.getByRole('button', {name: '09:00 – 10:00 UTC Reserve ↗', exact: true});
       await slot.click();
       await expect(page.locator('#booking-feedback')).toContainText('Reserved.');
       const cancel = page.getByRole('button', {name: /^Cancel Focus room on/});
