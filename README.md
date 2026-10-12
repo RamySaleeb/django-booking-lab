@@ -73,6 +73,21 @@ For production, use durable PostgreSQL storage, authenticated ownership, retenti
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include PostgreSQL CI coverage, timezone display with daylight-saving tests, and automated browser accessibility checks. Please keep the demo easy to run and never commit credentials or real customer data.
 
+## Contributor roadmap
+
+Start with [fully booked-day and cancellation tests (#1)](https://github.com/RamySaleeb/django-booking-lab/issues/1), marked **good first issue**. Each issue includes scope, acceptance criteria, and code pointers.
+
+| Task | Contribution level |
+| --- | --- |
+| [Fully booked-day tests](https://github.com/RamySaleeb/django-booking-lab/issues/1) | Small · Django tests |
+| [Keyboard and large-text browser coverage](https://github.com/RamySaleeb/django-booking-lab/issues/2) | Intermediate · accessibility |
+| [Race-demo deadline and partial-outcome recovery](https://github.com/RamySaleeb/django-booking-lab/issues/3) | Intermediate · JavaScript resilience |
+| [PostgreSQL concurrency tests in CI](https://github.com/RamySaleeb/django-booking-lab/issues/4) | Advanced · database testing |
+| [Timezone and daylight-saving proposal](https://github.com/RamySaleeb/django-booking-lab/issues/5) | Design discussion · no implementation yet |
+
+All five welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). These are planned improvements, not completed features.
+
 ## License
 
 MIT. All rooms and reservations are fictional. This repository is an independent portfolio demo, not a claim about a deployed customer system.
+
