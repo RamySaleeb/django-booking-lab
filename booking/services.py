@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, timezone as datetime_timezone
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from .models import Reservation
@@ -26,7 +26,7 @@ ROOMS = {
 
 
 def available_days():
-    today = timezone.localdate()
+    today = timezone.now().astimezone(datetime_timezone.utc).date()
     return [today + timedelta(days=i) for i in range(1, 8)]
 
 

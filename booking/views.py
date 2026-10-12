@@ -1,10 +1,12 @@
 import uuid
+from urllib.parse import urlencode
 from datetime import date
 from django.contrib import messages
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from .time_display import ZONES, local_range, normalize_zone
 from .models import Reservation
 from .services import ROOMS, available_days, reserve_slot
 
@@ -13,6 +15,7 @@ from .services import ROOMS, available_days, reserve_slot
 def index(request):
     if "sandbox" not in request.session:
         request.session["sandbox"] = str(uuid.uuid4())
+    zone = normalize_zone(request.GET.get("timezone", "UTC"))
     days = available_days()
     try:
         selected_day = date.fromisoformat(request.GET.get("day", str(days[0])))
@@ -31,11 +34,17 @@ def index(request):
     }
     for reservation in reservations:
         reservation.room_name = ROOMS[reservation.room]["name"]
+        reservation.local_label = local_range(reservation.day, reservation.hour, zone)
     slots = [{"hour": h, "end": h + 1, "taken": h in occupied} for h in range(9, 17)]
+    for slot in slots:
+        slot["local_label"] = local_range(selected_day, slot["hour"], zone)
     return render(
         request,
         "index.html",
         {
+            "zones": ZONES,
+            "display_zone": zone,
+            "race_slot": next((s for s in slots if not s["taken"]), None),
             "days": days,
             "selected_day": selected_day,
             "rooms": ROOMS,
@@ -72,7 +81,14 @@ def reserve(request):
         messages.warning(
             request, "That slot was just taken. No duplicate reservation was created."
         )
-    return redirect(f"{reverse('index')}?room={room}&day={day}#booking-feedback")
+    query = urlencode(
+        {
+            "room": room,
+            "day": day,
+            "timezone": normalize_zone(request.POST.get("timezone", "UTC")),
+        }
+    )
+    return redirect(f"{reverse('index')}?{query}#booking-feedback")
 
 
 @require_POST
@@ -85,7 +101,14 @@ def cancel(request, reference):
     room, day = reservation.room, reservation.day
     reservation.delete()
     messages.success(request, "Reservation cancelled. The slot is available again.")
-    return redirect(f"{reverse('index')}?room={room}&day={day}#booking-feedback")
+    query = urlencode(
+        {
+            "room": room,
+            "day": day,
+            "timezone": normalize_zone(request.POST.get("timezone", "UTC")),
+        }
+    )
+    return redirect(f"{reverse('index')}?{query}#booking-feedback")
 
 
 @require_GET
