@@ -27,3 +27,43 @@ On Linux, use `npx playwright install --with-deps chromium` if browser system li
 The separate `browser` CI job runs the same suite in Chromium. Coverage includes Tab/Enter booking and cancellation with JavaScript both enabled and disabled, visible focus and native fragment destinations, 320px/1280px viewports at 100%/200% root text size, control overflow, accessible button names, and race live-region/focus behavior. Race responses are intercepted locally; real concurrency remains covered by Django tests. Failure traces are retained for seven days in CI.
 
 Automated DOM/live-region assertions do not establish what a screen reader speaks. No manual screen-reader session has been completed for this change, and no WCAG conformance is claimed. A useful follow-up is VoiceOver/Safari and NVDA/Firefox testing: navigate room/day links, reserve/cancel, confirm feedback is read once, then run a race and confirm its result is announced without moving focus. Record the browser, assistive-technology version, and observed speech in your report. Also check browser-native text-only zoom; the suite models text enlargement with a 200% root font size.
+
+## Optional PostgreSQL verification
+
+SQLite remains the default for local development and the free Render demo. PostgreSQL is an opt-in test target, not a production migration. The `postgres` CI job uses an ephemeral PostgreSQL 17 service container and disposable credentials, applies migrations, confirms the backend, and runs the complete booking suite. The SQLite and browser jobs remain separate.
+
+To reproduce locally, activate the Python environment and start an isolated PostgreSQL 17 container (Docker must already be running):
+
+```sh
+pip install -r requirements-postgres.txt
+docker run --rm --detach --name slot-studio-postgres-test \
+  -e POSTGRES_DB=slot_studio_test \
+  -e POSTGRES_USER=slot_studio_test \
+  -e POSTGRES_PASSWORD=disposable-local-only \
+  -p 127.0.0.1:55432:5432 postgres:17
+```
+
+Wait until `docker exec slot-studio-postgres-test pg_isready -U slot_studio_test -d slot_studio_test` reports that it accepts connections, then run:
+
+```sh
+export PGDATABASE=slot_studio_test
+export PGUSER=slot_studio_test
+export PGPASSWORD=disposable-local-only
+export PGHOST=127.0.0.1
+export PGPORT=55432
+python manage.py migrate --noinput --settings=config.settings_postgres
+python manage.py test booking --noinput --verbosity 2 --settings=config.settings_postgres
+```
+
+`PGDATABASE`, `PGUSER`, `PGPASSWORD`, and `PGHOST` are required by the optional settings module; `PGPORT` defaults to `5432`. Django creates and destroys a separate `test_<PGDATABASE>` database, so the disposable role needs permission to create databases. Use only a dedicated local/CI server, never a production database. Stop and discard this test container afterward:
+
+```sh
+docker stop slot-studio-postgres-test
+unset PGDATABASE PGUSER PGPASSWORD PGHOST PGPORT
+```
+
+`requirements-postgres.txt` adds the pinned Psycopg 3 binary adapter; the regular Render requirements and default settings do not change. The configuration uses Django's default READ COMMITTED isolation. It sets a 5-second connection timeout, 10-second lock timeout, and 15-second statement timeout to surface stalled workers. CI has a 10-minute job deadline.
+
+The concurrency tests use a bounded two-party barrier after opening independent connections. PostgreSQL backend process IDs prove separate database sessions. Competing writes to the same sandbox/room/day/hour must produce exactly one reservation and one expected conflict; separate sandboxes must both succeed. Each worker closes its connection in `finally`, and future exceptions propagate to the test runner. No timing sleeps or database mocks are used. The existing cancellation, rebooking, HTTP 201/409, and uniqueness tests run on both backends.
+
+This verifies fixed one-hour slot uniqueness on the tested backends. It does not establish protection for arbitrary-duration overlaps or every isolation level. References: [Django PostgreSQL support and isolation](https://docs.djangoproject.com/en/5.2/ref/databases/#postgresql-notes), [Psycopg installation](https://www.psycopg.org/psycopg3/docs/basic/install.html).

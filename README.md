@@ -63,7 +63,7 @@ Race-demo tests use Node.js 22+ with no npm packages:
 node --test tests/race.test.cjs
 ```
 
-The 11 JavaScript tests use controlled time and fake requests to cover success, conflicts, server errors, rejection, stalled requests, late completions, cleanup, and repeat-activation guards. The 13 Django tests cover database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. Tests use a separate file-backed SQLite database so threaded tests exercise separate connections.
+The 11 JavaScript tests use controlled time and fake requests to cover success, conflicts, server errors, rejection, stalled requests, late completions, cleanup, and repeat-activation guards. The 14 Django tests cover database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. The SQLite job uses a separate file-backed database; an additional PostgreSQL 17 CI job runs the same suite against a disposable service container. The concurrency tests synchronize independent connections before competing writes and verify both same-sandbox conflicts and separate-sandbox success.
 
 Browser regression tests (Node.js 22+ and the active Python environment):
 
@@ -74,6 +74,10 @@ npm run test:browser
 ```
 
 Seven Chromium tests cover keyboard-only booking with/without JavaScript, 320px and desktop layouts at 100%/200% text size, and race status/focus behavior. They run against local fictional data in a separate CI job. See [browser testing and manual screen-reader limitations](CONTRIBUTING.md#browser-accessibility-checks). These checks are not a WCAG certification.
+
+## Optional PostgreSQL tests
+
+The live demo stays on free Render hosting with SQLite. PostgreSQL coverage runs only in a disposable CI service container or an explicitly selected local test database. Install `requirements-postgres.txt` and select `--settings=config.settings_postgres`; see the [local PostgreSQL commands and environment variables](CONTRIBUTING.md#optional-postgresql-verification). The default app has no new runtime dependency.
 
 ## Deploy on Render
 
@@ -91,7 +95,7 @@ For production, use durable PostgreSQL storage, authenticated ownership, retenti
 
 ## Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include PostgreSQL CI coverage, timezone display with daylight-saving tests, and manual assistive-technology checks. Please keep the demo easy to run and never commit credentials or real customer data.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include timezone display with daylight-saving tests, and manual assistive-technology checks. Please keep the demo easy to run and never commit credentials or real customer data.
 
 ## Contributor roadmap
 
@@ -102,7 +106,7 @@ Start with [fully booked-day and cancellation tests (#1)](https://github.com/Ram
 | [Fully booked-day tests](https://github.com/RamySaleeb/django-booking-lab/issues/1) | Small · Django tests |
 | [Keyboard and large-text browser coverage](https://github.com/RamySaleeb/django-booking-lab/issues/2) | Completed · keyboard, reflow, and browser tests |
 | [Race-demo deadline and partial-outcome recovery](https://github.com/RamySaleeb/django-booking-lab/issues/3) | Completed · 8-second deadline and recovery tests |
-| [PostgreSQL concurrency tests in CI](https://github.com/RamySaleeb/django-booking-lab/issues/4) | Advanced · database testing |
+| [PostgreSQL concurrency tests in CI](https://github.com/RamySaleeb/django-booking-lab/issues/4) | Completed · PostgreSQL 17 CI and independent-session races |
 | [Timezone and daylight-saving proposal](https://github.com/RamySaleeb/django-booking-lab/issues/5) | Design discussion · no implementation yet |
 
 The remaining open issues welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). Open items are planned improvements; completed items are marked above.
