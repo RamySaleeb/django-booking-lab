@@ -65,6 +65,66 @@ class BookingTests(TestCase):
             201,
         )
 
+    def test_full_room_day_disables_slots_and_race(self):
+        for hour in range(9, 17):
+            self.client.post("/reserve/", {**self.data, "hour": hour})
+
+        response = self.client.get(
+            "/", {"room": "focus", "day": str(self.day)}
+        )
+
+        self.assertEqual(response.context["free_count"], 0)
+        self.assertIsNone(response.context["race_hour"])
+        self.assertEqual(len(response.context["reservations"]), 8)
+        self.assertTrue(all(slot["taken"] for slot in response.context["slots"]))
+        self.assertContains(response, "0 open")
+        self.assertEqual(
+            response.content.decode().count('<button class="slot" disabled>'), 8
+        )
+        self.assertContains(response, 'id="race-button" disabled')
+
+    def test_cancellation_reopens_exact_slot_and_race_targets_it(self):
+        for hour in range(9, 17):
+            self.client.post("/reserve/", {**self.data, "hour": hour})
+
+        reservation = Reservation.objects.get(day=self.day, hour=12)
+        self.assertEqual(
+            self.client.post(reverse("cancel", args=[reservation.reference])).status_code,
+            302,
+        )
+
+        response = self.client.get(
+            "/", {"room": "focus", "day": str(self.day)}
+        )
+        slots = {slot["hour"]: slot for slot in response.context["slots"]}
+
+        self.assertEqual(response.context["free_count"], 1)
+        self.assertEqual(response.context["race_hour"], 12)
+        self.assertFalse(slots[12]["taken"])
+        self.assertTrue(all(slots[hour]["taken"] for hour in range(9, 17) if hour != 12))
+        self.assertContains(response, "1 open")
+
+    def test_full_room_does_not_block_other_room_day_or_visitor(self):
+        for hour in range(9, 17):
+            self.client.post("/reserve/", {**self.data, "hour": hour})
+
+        other_day = available_days()[1]
+        other = Client()
+        other.get("/")
+
+        for client, room, day in [
+            (self.client, "meeting", self.day),
+            (self.client, "focus", other_day),
+            (other, "focus", self.day),
+        ]:
+            with self.subTest(room=room, day=day, client=client is other):
+                response = client.get("/", {"room": room, "day": str(day)})
+                self.assertEqual(response.context["free_count"], 8)
+                self.assertEqual(response.context["race_hour"], 9)
+                self.assertTrue(
+                    all(not slot["taken"] for slot in response.context["slots"])
+                )
+
     def test_other_visitor_cannot_cancel(self):
         self.client.post("/reserve/", self.data)
         other = Client()
