@@ -4,6 +4,12 @@
 
 Browse three fictional workspaces, reserve an hourly slot, cancel a reservation, and send two competing requests to see double-booking prevention in action. No account or personal details required.
 
+**[Try the live demo →](https://slot-studio-ramy.onrender.com)** · [Test workflow](https://github.com/RamySaleeb/django-booking-lab/actions/workflows/tests.yml)
+
+Free hosting may take a moment to wake up. Demo reservations are temporary.
+
+![Slot Studio booking interface](preview.jpg)
+
 ## Try the walkthrough
 
 1. Choose **Focus room**, **Meeting room**, or **Creative studio**.
