@@ -16,7 +16,9 @@ Free hosting may take a moment to wake up. Demo reservations are temporary.
 2. Pick one of the next seven days. Every session lasts one hour; all times are **UTC**.
 3. Reserve an open time. It appears under **Your reservations** and becomes unavailable.
 4. Cancel it. The slot becomes available again.
-5. Click **Test a booking race**. Two real concurrent HTTP requests target the same open slot. Normally one returns `201 Created`; the other returns `409 Conflict`. Click **See updated reservations** to confirm only one booking exists. If the slot was already taken, both requests return `409`.
+5. Click **Test a booking race**. Two real concurrent HTTP requests target the same open slot. Normally one returns `201 Created`; the other returns `409 Conflict`. Click **Check your reservations** to confirm only one booking exists. If the slot was already taken, both requests return `409`.
+
+6. If the experiment cannot finish within **8 seconds**, it stops waiting, aborts outstanding browser requests, and offers **Check your reservations**. A request may already have created a booking even if its response was lost. Nothing is automatically retried; check the actual reservations before starting another experiment. Refreshing the page enables a new experiment using current availability.
 
 Each browser gets a signed, anonymous sandbox identifier. Visitors do not compete for the same global rooms, while requests within one sandbox compete for the same database slot. Booking and cancellation work without JavaScript; only the race experiment requires it.
 
@@ -53,7 +55,13 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 ```
 
-The test suite covers database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. Tests use a separate file-backed SQLite database so threaded tests exercise separate connections.
+Race-demo tests use Node.js 22+ with no npm packages:
+
+```sh
+node --test tests/race.test.cjs
+```
+
+The 11 JavaScript tests use controlled time and fake requests to cover success, conflicts, server errors, rejection, stalled requests, late completions, cleanup, and repeat-activation guards. The 13 Django tests cover database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. Tests use a separate file-backed SQLite database so threaded tests exercise separate connections.
 
 ## Deploy on Render
 
@@ -81,11 +89,11 @@ Start with [fully booked-day and cancellation tests (#1)](https://github.com/Ram
 | --- | --- |
 | [Fully booked-day tests](https://github.com/RamySaleeb/django-booking-lab/issues/1) | Small · Django tests |
 | [Keyboard and large-text browser coverage](https://github.com/RamySaleeb/django-booking-lab/issues/2) | Intermediate · accessibility |
-| [Race-demo deadline and partial-outcome recovery](https://github.com/RamySaleeb/django-booking-lab/issues/3) | Intermediate · JavaScript resilience |
+| [Race-demo deadline and partial-outcome recovery](https://github.com/RamySaleeb/django-booking-lab/issues/3) | Completed · 8-second deadline and recovery tests |
 | [PostgreSQL concurrency tests in CI](https://github.com/RamySaleeb/django-booking-lab/issues/4) | Advanced · database testing |
 | [Timezone and daylight-saving proposal](https://github.com/RamySaleeb/django-booking-lab/issues/5) | Design discussion · no implementation yet |
 
-All five welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). These are planned improvements, not completed features.
+The remaining open issues welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). Open items are planned improvements; the completed race-recovery item is marked above.
 
 ## License
 
