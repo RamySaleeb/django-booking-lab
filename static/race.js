@@ -53,7 +53,8 @@
     button.addEventListener('click', async () => {
       if (started || button.disabled) return;
       started = true;
-      button.disabled = true;
+      // Keep the control in the tab order while preventing repeat activation.
+      button.setAttribute('aria-disabled', 'true');
       result.textContent = 'Sending two requests for the same slot… Waiting up to 8 seconds.';
       const outcome = await runRace(signal => fetchRequest(form.action, {
         method: 'POST', body: makeBody(form), signal,
