@@ -13,7 +13,7 @@ Free hosting may take a moment to wake up. Demo reservations are temporary.
 ## Try the walkthrough
 
 1. Choose **Focus room**, **Meeting room**, or **Creative studio**.
-2. Pick one of the next seven days. Every session lasts one hour; all times are **UTC**.
+2. Pick one of the next seven days. Calendar dates and the room schedule remain **UTC**. Choose **Display timezone** and press **Apply timezone**, or click **Use device timezone**, to show local equivalents. Both local endpoints include a date and UTC offset, so midnight and daylight-saving changes are explicit. Every session lasts 60 elapsed minutes.
 3. Reserve an open time. It appears under **Your reservations** and becomes unavailable.
 4. Cancel it. The slot becomes available again.
 5. Click **Test a booking race**. Two real concurrent HTTP requests target the same open slot. Normally one returns `201 Created`; the other returns `409 Conflict`. Click **Check your reservations** to confirm only one booking exists. If the slot was already taken, both requests return `409`.
@@ -23,6 +23,8 @@ Free hosting may take a moment to wake up. Demo reservations are temporary.
 Keyboard walkthrough: press **Tab** to reveal **Skip to booking**, then **Enter**. Use Tab/Shift+Tab and Enter to choose a room/day, reserve a time, and cancel it. Focus follows the selected link and lands on the booking/cancellation feedback after submission. During a race, focus stays on the button; after completion, Tab reaches **Check your reservations**. Text and date cards reflow on narrow screens and with enlarged text.
 
 Each browser gets a signed, anonymous sandbox identifier. Visitors do not compete for the same global rooms, while requests within one sandbox compete for the same database slot. Booking and cancellation work without JavaScript; only the race experiment requires it.
+
+See the [timezone decision and DST examples](docs/decisions/0001-display-timezones.md). Timezone changes affect labels only; booking identity, availability, and the seven-day UTC window stay the same. If your local date differs, use the full local dates shown on each slot. The default and invalid-timezone fallback are UTC.
 
 ## What this demonstrates
 
@@ -63,7 +65,7 @@ Race-demo tests use Node.js 22+ with no npm packages:
 node --test tests/race.test.cjs
 ```
 
-The 11 JavaScript tests use controlled time and fake requests to cover success, conflicts, server errors, rejection, stalled requests, late completions, cleanup, and repeat-activation guards. The 14 Django tests cover database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. The SQLite job uses a separate file-backed database; an additional PostgreSQL 17 CI job runs the same suite against a disposable service container. The concurrency tests synchronize independent connections before competing writes and verify both same-sandbox conflicts and separate-sandbox success.
+The 11 JavaScript tests use controlled time and fake requests to cover success, conflicts, server errors, rejection, stalled requests, late completions, cleanup, and repeat-activation guards. The 22 Django tests cover database uniqueness, competing writes, visitor isolation, cancellation ownership, slot validation, CSRF, POST-only mutations, and the server-rendered booking flow. The SQLite job uses a separate file-backed database; an additional PostgreSQL 17 CI job runs the same suite against a disposable service container. The concurrency tests synchronize independent connections before competing writes and verify both same-sandbox conflicts and separate-sandbox success.
 
 Browser regression tests (Node.js 22+ and the active Python environment):
 
@@ -73,7 +75,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Seven Chromium tests cover keyboard-only booking with/without JavaScript, 320px and desktop layouts at 100%/200% text size, and race status/focus behavior. They run against local fictional data in a separate CI job. See [browser testing and manual screen-reader limitations](CONTRIBUTING.md#browser-accessibility-checks). These checks are not a WCAG certification.
+Nine Chromium tests cover keyboard-only booking with/without JavaScript, 320px and desktop layouts at 100%/200% text size, race status/focus behavior, and timezone selection with/without JavaScript. They run against local fictional data in a separate CI job. See [browser testing and manual screen-reader limitations](CONTRIBUTING.md#browser-accessibility-checks). These checks are not a WCAG certification.
 
 ## Optional PostgreSQL tests
 
@@ -95,7 +97,7 @@ For production, use durable PostgreSQL storage, authenticated ownership, retenti
 
 ## Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include timezone display with daylight-saving tests, and manual assistive-technology checks. Please keep the demo easy to run and never commit credentials or real customer data.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Good next steps include manual assistive-technology checks and broader browser coverage. Please keep the demo easy to run and never commit credentials or real customer data.
 
 ## Contributor roadmap
 
@@ -107,7 +109,7 @@ Start with [fully booked-day and cancellation tests (#1)](https://github.com/Ram
 | [Keyboard and large-text browser coverage](https://github.com/RamySaleeb/django-booking-lab/issues/2) | Completed · keyboard, reflow, and browser tests |
 | [Race-demo deadline and partial-outcome recovery](https://github.com/RamySaleeb/django-booking-lab/issues/3) | Completed · 8-second deadline and recovery tests |
 | [PostgreSQL concurrency tests in CI](https://github.com/RamySaleeb/django-booking-lab/issues/4) | Completed · PostgreSQL 17 CI and independent-session races |
-| [Timezone and daylight-saving proposal](https://github.com/RamySaleeb/django-booking-lab/issues/5) | Design discussion · no implementation yet |
+| [Timezone and daylight-saving proposal](https://github.com/RamySaleeb/django-booking-lab/issues/5) | Completed · local display, UTC identity, and DST tests |
 
 The remaining open issues welcome help. Comment on the issue before starting to coordinate work, then follow [CONTRIBUTING.md](CONTRIBUTING.md). Open items are planned improvements; completed items are marked above.
 

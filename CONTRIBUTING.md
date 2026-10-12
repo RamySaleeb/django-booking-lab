@@ -67,3 +67,9 @@ unset PGDATABASE PGUSER PGPASSWORD PGHOST PGPORT
 The concurrency tests use a bounded two-party barrier after opening independent connections. PostgreSQL backend process IDs prove separate database sessions. Competing writes to the same sandbox/room/day/hour must produce exactly one reservation and one expected conflict; separate sandboxes must both succeed. Each worker closes its connection in `finally`, and future exceptions propagate to the test runner. No timing sleeps or database mocks are used. The existing cancellation, rebooking, HTTP 201/409, and uniqueness tests run on both backends.
 
 This verifies fixed one-hour slot uniqueness on the tested backends. It does not establish protection for arbitrary-duration overlaps or every isolation level. References: [Django PostgreSQL support and isolation](https://docs.djangoproject.com/en/5.2/ref/databases/#postgresql-notes), [Psycopg installation](https://www.psycopg.org/psycopg3/docs/basic/install.html).
+
+## Timezone display tests
+
+Run `python manage.py test booking --noinput` for the deterministic timezone matrix on the default SQLite backend; the PostgreSQL CI job runs the same tests. Run `npm run test:browser` for timezone selection, explicit device detection, reservation/cancellation propagation, and no-JavaScript mobile coverage. See [decision 0001](docs/decisions/0001-display-timezones.md) for UTC identity, the seven-day window, repeated-hour offsets, and the test fixtures.
+
+`tzdata` is pinned in the runtime requirements. Conversion explicitly reads that package so host operating-system timezone data cannot silently change results. Update it deliberately when civil-time rules change, run both database jobs and browser tests, and review the fixed DST examples. Never convert local labels back into booking keys or shift the UTC schedule based on a visitor's display preference.
