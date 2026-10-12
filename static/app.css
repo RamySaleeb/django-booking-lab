@@ -111,3 +111,10 @@ a, button, h1, h2, h3 { overflow-wrap: anywhere; }
   h1 { font-size: 3rem; letter-spacing: -.08rem; }
   header, main, footer { padding-left: 1rem; padding-right: 1rem; }
 }
+
+.timezone-form { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.timezone-form label { font-weight: 650; }
+.timezone-form select { font: inherit; min-width: 0; max-width: 100%; width: 100%; padding: .65rem; color: inherit; background: #fffefb; border: 1px solid #718560; border-radius: .4rem; }
+.timezone-form button { min-height: 44px; padding: .6rem; border: 1px solid #718560; border-radius: .4rem; background: #e9efdf; color: #23352f; }
+.timezone-form button[hidden] { display: none; }
+.local-time { display: block; font-size: .75rem; font-weight: 400; line-height: 1.6; margin-top: .3rem; overflow-wrap: anywhere; }
