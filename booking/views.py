@@ -72,7 +72,7 @@ def reserve(request):
         messages.warning(
             request, "That slot was just taken. No duplicate reservation was created."
         )
-    return redirect(f"{reverse('index')}?room={room}&day={day}")
+    return redirect(f"{reverse('index')}?room={room}&day={day}#booking-feedback")
 
 
 @require_POST
@@ -85,7 +85,7 @@ def cancel(request, reference):
     room, day = reservation.room, reservation.day
     reservation.delete()
     messages.success(request, "Reservation cancelled. The slot is available again.")
-    return redirect(f"{reverse('index')}?room={room}&day={day}")
+    return redirect(f"{reverse('index')}?room={room}&day={day}#booking-feedback")
 
 
 @require_GET
